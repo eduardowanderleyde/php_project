@@ -31,6 +31,10 @@ RUN composer install
 # Change ownership of our applications
 RUN chown -R www-data:www-data /var/www
 
+# Install Xdebug
+RUN pecl install xdebug \
+    && docker-php-ext-enable xdebug
+
 # Expose port 9000
 EXPOSE 9000
 

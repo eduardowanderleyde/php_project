@@ -34,14 +34,7 @@ class ShippingCalculator
     }
 
     /**
-     * Calculate shipping cost.
-     *
-     * @param string $originCep
-     * @param string $destinationCep
-     * @param float $weight
-     * @return float
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
+     * Calcula o frete usando informações do ViaCEP.
      */
     public function calculate(string $originCep, string $destinationCep, float $weight): float
     {
@@ -61,14 +54,21 @@ class ShippingCalculator
             throw new \RuntimeException('Shipping API error simulated.');
         }
 
-        // Se client HTTP foi injetado, usa integração simulada
-        if ($this->client) {
-            $response = $this->client->get('https://api.shipping.com/calculate', [
-                'origin' => $originCep,
-                'destination' => $destinationCep,
-                'weight' => $weight,
-            ]);
-            return (float) ($response['price'] ?? 0.0);
+        // Se client HTTP foi injetado, usa integração real (ViaCEP)
+        if ($this->client && method_exists($this->client, 'getAddressByCep')) {
+            $origin = $this->client->getAddressByCep($originCep);
+            $destination = $this->client->getAddressByCep($destinationCep);
+
+            if ($originCep === $destinationCep) {
+                $base = 10.0;
+            } elseif (($origin['localidade'] ?? null) === ($destination['localidade'] ?? null)) {
+                $base = 15.0;
+            } elseif (($origin['uf'] ?? null) === ($destination['uf'] ?? null)) {
+                $base = 20.0;
+            } else {
+                $base = 35.0;
+            }
+            return $base * $weight;
         }
 
         // Valor padrão para testes sem client

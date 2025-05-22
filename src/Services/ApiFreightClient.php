@@ -43,4 +43,21 @@ class ApiFreightClient implements HttpClientInterface
         } while ($attempts <= $this->maxRetries);
         throw new \RuntimeException('API request failed');
     }
+
+    /**
+     * Consulta o ViaCEP e retorna os dados do endereço.
+     *
+     * @param string $cep
+     * @return array
+     */
+    public function getAddressByCep(string $cep): array
+    {
+        $cep = preg_replace('/\D/', '', $cep);
+        $url = "https://viacep.com.br/ws/{$cep}/json/";
+        $data = $this->get($url);
+        if (isset($data['erro']) && $data['erro'] === true) {
+            throw new \RuntimeException('CEP not found');
+        }
+        return $data;
+    }
 } 

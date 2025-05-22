@@ -56,6 +56,53 @@ class ApiFreightClientTest extends TestCase
         $this->expectExceptionMessage('API request failed after retries');
         $client->get('http://fakeapi.com/freight');
     }
+
+    public function test_get_address_by_cep_success()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], json_encode([
+                'cep' => '01001-000',
+                'logradouro' => 'Praça da Sé',
+                'localidade' => 'São Paulo',
+                'uf' => 'SP'
+            ]))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $guzzle = new Client(['handler' => $handlerStack]);
+
+        $client = new ApiFreightClientForTest($guzzle);
+        $result = $client->getAddressByCep('01001-000');
+        $this->assertEquals('São Paulo', $result['localidade']);
+        $this->assertEquals('SP', $result['uf']);
+    }
+
+    public function test_get_address_by_cep_not_found()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], json_encode(['erro' => true]))
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $guzzle = new Client(['handler' => $handlerStack]);
+
+        $client = new ApiFreightClientForTest($guzzle);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('CEP not found');
+        $client->getAddressByCep('00000-000');
+    }
+
+    public function test_get_address_by_cep_invalid_json()
+    {
+        $mock = new MockHandler([
+            new Response(200, [], 'not-json')
+        ]);
+        $handlerStack = HandlerStack::create($mock);
+        $guzzle = new Client(['handler' => $handlerStack]);
+
+        $client = new ApiFreightClientForTest($guzzle);
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Invalid JSON response');
+        $client->getAddressByCep('01001-000');
+    }
 }
 
 // Classe auxiliar para injetar o Guzzle mockado

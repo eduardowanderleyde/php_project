@@ -54,14 +54,51 @@ class ShippingCalculatorTest extends TestCase
         $this->assertEquals('20040000', ShippingCalculator::normalizeCep('20040-000'));
     }
 
-    public function test_calculate_shipping_with_http_client_mock()
+    public function test_calculate_shipping_same_cep()
     {
         $mockClient = $this->createMock(\App\Services\HttpClientInterface::class);
-        $mockClient->method('get')->willReturn(['price' => 42.0]);
-
+        $mockClient->method('getAddressByCep')->willReturnOnConsecutiveCalls(
+            ['localidade' => 'São Paulo', 'uf' => 'SP'],
+            ['localidade' => 'São Paulo', 'uf' => 'SP']
+        );
         $calculator = new ShippingCalculator($mockClient);
-        $result = $calculator->calculate('01001-000', '20040-000', 2.5);
+        $result = $calculator->calculate('01001-000', '01001-000', 2);
+        $this->assertEquals(20.0, $result); // 10 * 2
+    }
 
-        $this->assertEquals(42.0, $result);
+    public function test_calculate_shipping_same_city()
+    {
+        $mockClient = $this->createMock(\App\Services\HttpClientInterface::class);
+        $mockClient->method('getAddressByCep')->willReturnOnConsecutiveCalls(
+            ['localidade' => 'São Paulo', 'uf' => 'SP'],
+            ['localidade' => 'São Paulo', 'uf' => 'SP']
+        );
+        $calculator = new ShippingCalculator($mockClient);
+        $result = $calculator->calculate('01001-000', '01002-000', 3);
+        $this->assertEquals(45.0, $result); // 15 * 3
+    }
+
+    public function test_calculate_shipping_same_state()
+    {
+        $mockClient = $this->createMock(\App\Services\HttpClientInterface::class);
+        $mockClient->method('getAddressByCep')->willReturnOnConsecutiveCalls(
+            ['localidade' => 'Campinas', 'uf' => 'SP'],
+            ['localidade' => 'São Paulo', 'uf' => 'SP']
+        );
+        $calculator = new ShippingCalculator($mockClient);
+        $result = $calculator->calculate('13010-000', '01001-000', 1.5);
+        $this->assertEquals(30.0, $result); // 20 * 1.5
+    }
+
+    public function test_calculate_shipping_different_states()
+    {
+        $mockClient = $this->createMock(\App\Services\HttpClientInterface::class);
+        $mockClient->method('getAddressByCep')->willReturnOnConsecutiveCalls(
+            ['localidade' => 'São Paulo', 'uf' => 'SP'],
+            ['localidade' => 'Rio de Janeiro', 'uf' => 'RJ']
+        );
+        $calculator = new ShippingCalculator($mockClient);
+        $result = $calculator->calculate('01001-000', '20040-000', 2);
+        $this->assertEquals(70.0, $result); // 35 * 2
     }
 } 

@@ -118,3 +118,64 @@ docker-compose exec app bash
 # Rebuild containers
 docker-compose up -d --build
 ```
+
+## ShippingCalculator — Usage Documentation
+
+### 1. Instantiating the Calculator
+
+You can use the `ShippingCalculator` with any implementation of `HttpClientInterface`.
+For real integration with ViaCEP, use `ApiFreightClient`:
+
+```php
+use App\Services\ShippingCalculator;
+use App\Services\ApiFreightClient;
+
+$client = new ApiFreightClient();
+$calculator = new ShippingCalculator($client);
+```
+
+### 2. Calculating the Shipping Price
+
+```php
+$originCep = '01001-000';        // Origin CEP
+$destinationCep = '20040-000';   // Destination CEP
+$weight = 2.5;                   // Weight in kg
+
+try {
+    $price = $calculator->calculate($originCep, $destinationCep, $weight);
+    echo "Estimated shipping price: R$ " . number_format($price, 2, ',', '.');
+} catch (\Exception $e) {
+    echo "Error: " . $e->getMessage();
+}
+```
+
+### 3. Simulation Logic
+
+- **Same CEP:** shipping = R$ 10.00 × weight
+- **Same city:** shipping = R$ 15.00 × weight
+- **Same state:** shipping = R$ 20.00 × weight
+- **Different states:** shipping = R$ 35.00 × weight
+
+### 4. Example Response
+
+```
+Estimated shipping price: R$ 70,00
+```
+
+### 5. Error Handling
+
+- Invalid or not found CEP: throws exception with clear message.
+- Weight less than or equal to zero: throws exception.
+- Failure in ViaCEP integration: throws exception.
+
+### 6. Tests
+
+The project already has automated tests covering:
+
+- Shipping calculation for all scenarios (same CEP, city, state, different states)
+- CEP and weight validation
+- Integration and error handling with ViaCEP
+
+### 7. Example usage in Controller (REST API)
+
+If you want to expose as an endpoint, just create a controller and use the logic above to return the shipping price in JSON.

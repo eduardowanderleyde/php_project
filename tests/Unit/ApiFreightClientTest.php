@@ -105,7 +105,7 @@ class ApiFreightClientTest extends TestCase
     }
 }
 
-// Classe auxiliar para injetar o Guzzle mockado
+// Helper class to inject mocked Guzzle client
 class ApiFreightClientForTest extends ApiFreightClient {
     public function __construct($guzzle, $timeout = 3, $maxRetries = 2) {
         $this->client = $guzzle;

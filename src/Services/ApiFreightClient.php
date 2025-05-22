@@ -11,6 +11,10 @@ class ApiFreightClient implements HttpClientInterface
     protected int $timeout;
     protected int $maxRetries;
 
+    /**
+     * @param int $timeout
+     * @param int $maxRetries
+     */
     public function __construct(int $timeout = 3, int $maxRetries = 2)
     {
         $this->client = new Client();
@@ -18,6 +22,13 @@ class ApiFreightClient implements HttpClientInterface
         $this->maxRetries = $maxRetries;
     }
 
+    /**
+     * Performs a GET request and returns a response array.
+     *
+     * @param string $url
+     * @param array $params
+     * @return array
+     */
     public function get(string $url, array $params = []): array
     {
         $attempts = 0;
@@ -45,7 +56,7 @@ class ApiFreightClient implements HttpClientInterface
     }
 
     /**
-     * Consulta o ViaCEP e retorna os dados do endereço.
+     * Queries ViaCEP and returns address data.
      *
      * @param string $cep
      * @return array

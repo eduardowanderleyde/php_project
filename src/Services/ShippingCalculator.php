@@ -34,7 +34,14 @@ class ShippingCalculator
     }
 
     /**
-     * Calcula o frete usando informações do ViaCEP.
+     * Calculates shipping using ViaCEP information.
+     *
+     * @param string $originCep
+     * @param string $destinationCep
+     * @param float $weight
+     * @return float
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
      */
     public function calculate(string $originCep, string $destinationCep, float $weight): float
     {
@@ -54,7 +61,7 @@ class ShippingCalculator
             throw new \RuntimeException('Shipping API error simulated.');
         }
 
-        // Se client HTTP foi injetado, usa integração real (ViaCEP)
+        // If HTTP client is injected, use real integration (ViaCEP)
         if ($this->client && method_exists($this->client, 'getAddressByCep')) {
             $origin = $this->client->getAddressByCep($originCep);
             $destination = $this->client->getAddressByCep($destinationCep);
@@ -71,12 +78,12 @@ class ShippingCalculator
             return $base * $weight;
         }
 
-        // Valor padrão para testes sem client
+        // Default value for tests without client
         return 25.50;
     }
 
     /**
-     * Validate CEP format (only digits, 8 chars).
+     * Validates CEP format (only digits, 8 chars).
      *
      * @param string $cep
      * @return bool
@@ -87,7 +94,7 @@ class ShippingCalculator
     }
 
     /**
-     * Normalize CEP (remove non-digits).
+     * Normalizes CEP (removes non-digits).
      *
      * @param string $cep
      * @return string

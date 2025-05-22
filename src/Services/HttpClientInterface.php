@@ -5,7 +5,7 @@ namespace App\Services;
 interface HttpClientInterface
 {
     /**
-     * Realiza uma requisição GET e retorna um array de resposta.
+     * Performs a GET request and returns a response array.
      *
      * @param string $url
      * @param array $params
@@ -14,7 +14,7 @@ interface HttpClientInterface
     public function get(string $url, array $params = []): array;
 
     /**
-     * Consulta o ViaCEP e retorna os dados do endereço.
+     * Queries ViaCEP and returns address data.
      *
      * @param string $cep
      * @return array
